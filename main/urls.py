@@ -3,9 +3,15 @@ from . import views
 
 
 urlpatterns = [
-    path('', views.StudentView.as_view()),
-    path('register/', views.UserView.as_view()),
 
+    # for generic view
+    path('generic_student/', views.StudentGenericView.as_view()),
+
+    # for class based view
+    # path('', views.StudentView.as_view()),
+    # path('register/', views.UserView.as_view()),
+
+    # for function based view
     # path('', views.home, name='home'),
     # path('post/', views.post_data, name='post_data'),
     # path('read/<str:pk>/', views.read_data, name='read_data'),

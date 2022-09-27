@@ -1,13 +1,25 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
+# generic view
+from rest_framework import generics
+
+from django.contrib.auth.models import User
+
 from . models import Student, Category, Book
 from . serializers import StudentSerializer, CategorySerializer, BookSerializer, UserSerializer
-from rest_framework.authtoken.models import Token       # imported for token authentication
+
+# imported for token authentication
+from rest_framework.authentication import TokenAuthentication
+
+from rest_framework.permissions import IsAuthenticated
+
+# imported for token authentication
+from rest_framework.authtoken.models import Token
+# imported for jwt authentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserView(APIView):
@@ -18,18 +30,34 @@ class UserView(APIView):
             serializer.save()
 
             user = User.objects.get(username=serializer.data['username'])
+            # token authentication
             token, _ = Token.objects.get_or_create(user=user)
+            # jwt token refresh manually
+            refresh = RefreshToken.for_user(user)
 
-            return Response({'status': 'Success', 'token': str(token), 'message': 'User created successfully'})
+            return Response({'status': 'Success', 'refresh': str(refresh), 'access': str(refresh.access_token), 'message': 'User created successfully'})
 
         else:
             return Response({'status': 'failed', 'message': 'something went wrong'})
 
 
+# rest framework generic view
+class StudentGenericView(generics.ListAPIView, generics.CreateAPIView):
+    queryset = Student.objects.all()
+    serializer_class = StudentSerializer
+
+
+'''
+# class based view
 class StudentView(APIView):
     
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    # for token authentication
+    # authentication_classes = [TokenAuthentication]
+
+    # for jwt authentication
+    authentication_classes = [JWTAuthentication]
+    # permission or for authorization
+    permission_classes = [IsAuthenticated]               
 
     def get(self, request):
         students = Student.objects.all()        
@@ -64,9 +92,10 @@ class StudentView(APIView):
         serializer.delete()
 
         return Response({'status': 'success', 'message': 'data deleted successfully'})
-
+'''
 
 '''
+# function based view
 # data list
 @api_view(['GET'])
 def home(request):
